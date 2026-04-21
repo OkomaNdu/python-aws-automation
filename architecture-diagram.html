@@ -2,846 +2,501 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AWS Python Automation — Live Architecture Diagram</title>
+  <title>Python AWS Automation — Architecture</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
+      background: #f0f2f5;
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
-      min-height: 100vh;
-      padding: 30px 20px;
-    }
-
-    /* ── HEADER ── */
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #58a6ff;
-      letter-spacing: 0.5px;
-    }
-    .header p {
-      font-size: 12px;
-      color: #8b949e;
-      margin-top: 5px;
-    }
-
-    /* ── CANVAS ── */
-    .canvas {
-      max-width: 1200px;
-      margin: 0 auto;
-      position: relative;
-    }
-
-    /* ── PIPELINE ROW ── */
-    .pipeline-row {
       display: flex;
-      align-items: center;
       justify-content: center;
-      gap: 0;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 10px;
+      padding: 30px 16px;
     }
-
-    /* ── NODE CARD ── */
-    .node-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .node-icon {
-      width: 60px;
-      height: 60px;
+    .page {
+      background: #fff;
       border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      border: 2px solid transparent;
-      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-      position: relative;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.13);
+      padding: 24px 28px 20px;
+      width: 1140px;
     }
+    .page-title { font-size: 14.5px; font-weight: 700; color: #1a1a2e; }
+    .page-sub   { font-size: 10px; color: #999; margin-top: 2px; margin-bottom: 16px; }
 
-    .node-card:hover .node-icon {
-      transform: translateY(-4px) scale(1.08);
-      box-shadow: 0 8px 24px rgba(88,166,255,0.35);
-      border-color: #58a6ff;
-    }
+    .legend { display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; padding-top:12px; border-top:1px solid #eee; }
+    .li { display:flex; align-items:center; gap:6px; font-size:9.5px; color:#555; }
+    .ll { width:24px; height:2px; }
+    .ld { width:24px; height:0; border-top:2px dashed; }
 
-    .node-label {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: #c9d1d9;
-      text-align: center;
-    }
-    .node-sub {
-      font-size: 9px;
-      color: #6e7681;
-      text-align: center;
-      line-height: 1.4;
-    }
+    .footer-note { font-size:8.5px; color:#ccc; text-align:right; margin-top:6px; }
 
-    /* ── PULSE RING ── */
-    .pulse-ring {
-      position: absolute;
-      inset: -6px;
-      border-radius: 18px;
-      border: 2px solid transparent;
-      animation: pulse 2.2s ease-out infinite;
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+    @keyframes pulse-ring {
+      0%   { r:0; opacity:.65; }
+      100% { r:26; opacity:0; }
     }
-
-    @keyframes pulse {
-      0%   { transform: scale(1);   opacity: 0.7; border-color: #58a6ff; }
-      70%  { transform: scale(1.18); opacity: 0;   border-color: #58a6ff; }
-      100% { transform: scale(1.18); opacity: 0; }
-    }
-
-    /* ── ANIMATED ARROW ── */
-    .arrow-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      min-width: 55px;
-      margin-top: -28px;
-    }
-
-    .arrow-track {
-      width: 100%;
-      height: 4px;
-      background: #21262d;
-      border-radius: 2px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .arrow-packet {
-      position: absolute;
-      top: 0; left: -30%;
-      width: 30%;
-      height: 100%;
-      border-radius: 2px;
-      animation: flow 1.6s linear infinite;
-    }
-
     @keyframes flow {
-      0%   { left: -30%; }
-      100% { left: 110%; }
+      0%   { offset-distance:0%;   opacity:0; }
+      8%   { opacity:1; }
+      92%  { opacity:1; }
+      100% { offset-distance:100%; opacity:0; }
     }
-
-    .arrow-label {
-      font-size: 8.5px;
-      color: #6e7681;
-      white-space: nowrap;
-      font-weight: 500;
-    }
-
-    /* ── SECTION BOXES ── */
-    .section-box {
-      border-radius: 14px;
-      padding: 16px 18px;
-      position: relative;
-      transition: box-shadow 0.3s;
-    }
-    .section-box:hover { box-shadow: 0 0 0 2px #58a6ff44; }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* ── JENKINS ── */
-    .jenkins-section {
-      border: 1.5px dashed #e3b341;
-      background: #161b22;
-      margin-top: 20px;
-    }
-    .jenkins-section .section-title { color: #e3b341; }
-
-    .stages-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stage-box {
-      background: #1c2128;
-      border: 1.5px solid #e3b341;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 9.5px;
-      font-weight: 600;
-      text-align: center;
-      color: #e3b341;
-      min-width: 68px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stage-box::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, #e3b34122, transparent);
-      transform: translateX(-100%);
-      animation: shimmer 2.5s infinite;
-    }
-
-    @keyframes shimmer {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-
-    .stage-box:hover { background: #21262d; transform: translateY(-2px); }
-    .stage-num { font-size: 8.5px; color: #9e6a03; margin-bottom: 2px; }
-    .stage-arrow { color: #e3b341; font-size: 16px; font-weight: bold; }
-
-    .scripts-row {
-      display: flex;
-      gap: 5px;
-      margin-top: 9px;
-      flex-wrap: wrap;
-    }
-
-    .script-tag {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 4px;
-      padding: 3px 7px;
-      font-size: 8px;
-      color: #79c0ff;
-      font-family: 'Courier New', monospace;
-      transition: border-color 0.2s;
-    }
-    .script-tag:hover { border-color: #58a6ff; color: #58a6ff; }
-
-    .creds-row {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      margin-top: 7px;
-      padding-top: 7px;
-      border-top: 1px dashed #21262d;
-    }
-
-    .cred-badge {
-      background: #161b22;
-      border: 1px solid #388bfd44;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 8px;
-      color: #79c0ff;
-    }
-
-    /* ── AWS CLOUD ── */
-    .aws-section {
-      border: 1.5px solid #f78166;
-      background: #161b22;
-      margin-top: 20px;
-    }
-    .aws-section .section-title { color: #f78166; }
-
-    /* ── VPC ── */
-    .vpc-box {
-      border: 1.5px solid #6e40c9;
-      border-radius: 10px;
-      background: #1c2128;
-      padding: 12px;
-    }
-    .vpc-title { font-size: 10px; font-weight: 700; color: #9a6dd7; margin-bottom: 10px; }
-
-    /* ── SUBNET ── */
-    .subnet-box {
-      border: 1.5px solid #238636;
-      border-radius: 8px;
-      background: #161b22;
-      padding: 10px;
-    }
-    .subnet-title { font-size: 9px; font-weight: 700; color: #3fb950; margin-bottom: 8px; }
-
-    /* ── EC2 ── */
-    .ec2-card {
-      background: #1c2128;
-      border: 1.5px solid #e3b341;
-      border-radius: 8px;
-      padding: 10px 12px;
-      cursor: pointer;
-      transition: box-shadow 0.25s, transform 0.25s;
-    }
-    .ec2-card:hover {
-      box-shadow: 0 0 16px #e3b34166;
-      transform: translateY(-2px);
-    }
-    .ec2-title { font-size: 10px; font-weight: 700; color: #e3b341; margin-bottom: 5px; }
-    .ec2-detail { font-size: 8.5px; color: #8b949e; line-height: 1.7; }
-
-    .docker-box {
-      background: #0d1117;
-      border: 1.5px solid #1f6feb;
-      border-radius: 6px;
-      padding: 7px 9px;
-      margin-top: 8px;
-      font-size: 9px;
-      color: #58a6ff;
-      font-weight: 600;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .docker-box .running-dot {
-      display: inline-block;
-      width: 7px; height: 7px;
-      background: #3fb950;
-      border-radius: 50%;
-      margin-right: 4px;
-      animation: blink 1.3s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.2; }
-    }
-
-    /* ── SG ── */
-    .sg-box {
-      border: 1.5px dashed #f85149;
-      border-radius: 8px;
-      background: #1c2128;
-      padding: 9px;
-      margin-top: 8px;
-    }
-    .sg-title { font-size: 9px; font-weight: 700; color: #f85149; margin-bottom: 5px; }
-    .sg-rules { display: flex; gap: 6px; flex-wrap: wrap; }
-    .sg-rule {
-      background: #0d1117;
-      border: 1px solid #f8514944;
-      border-radius: 4px;
-      padding: 2px 7px;
-      font-size: 8.5px;
-      color: #f85149;
-      font-weight: 600;
-    }
-
-    /* ── ECR ── */
-    .ecr-card {
-      background: #1c2128;
-      border: 1.5px solid #8957e5;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: box-shadow 0.25s, transform 0.25s;
-    }
-    .ecr-card:hover { box-shadow: 0 0 16px #8957e566; transform: translateY(-2px); }
-    .ecr-title { font-size: 9.5px; font-weight: 700; color: #d2a8ff; margin-bottom: 5px; }
-    .ecr-tag {
-      background: #0d1117;
-      border: 1px solid #8957e544;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 8.5px;
-      color: #d2a8ff;
-      margin: 2px 0;
-      font-family: monospace;
-      display: block;
-    }
-
-    /* ── IAM ── */
-    .iam-card {
-      background: #1c2128;
-      border: 1.5px solid #3fb950;
-      border-radius: 8px;
-      padding: 9px;
-      text-align: center;
-      cursor: pointer;
-      transition: box-shadow 0.25s, transform 0.25s;
-    }
-    .iam-card:hover { box-shadow: 0 0 14px #3fb95055; transform: translateY(-2px); }
-    .iam-title { font-size: 9.5px; font-weight: 700; color: #3fb950; }
-
-    /* ── INTERNET GW ── */
-    .igw-card {
-      background: #1c2128;
-      border: 1.5px solid #6e40c9;
-      border-radius: 8px;
-      padding: 9px;
-      text-align: center;
-    }
-    .igw-title { font-size: 9px; font-weight: 700; color: #9a6dd7; }
-
-    /* ── USERS / HTTP ── */
-    .users-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-    .http-badge {
-      background: #1f6feb22;
-      border: 1.5px solid #1f6feb;
-      border-radius: 20px;
-      padding: 3px 12px;
-      font-size: 9.5px;
-      color: #58a6ff;
-      font-weight: 600;
-      animation: glowBadge 2s ease-in-out infinite;
-    }
-    @keyframes glowBadge {
-      0%, 100% { box-shadow: 0 0 0 0 #1f6feb44; }
-      50%       { box-shadow: 0 0 10px 3px #1f6feb44; }
-    }
-
-    /* ── AWS INNER GRID ── */
-    .aws-inner {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .aws-right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 120px;
-    }
-
-    /* ── UTILITY SECTION ── */
-    .utility-section {
-      border: 1.5px dashed #1f6feb;
-      background: #161b22;
-      margin-top: 20px;
-    }
-    .utility-section .section-title { color: #58a6ff; }
-
-    .util-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 7px;
-    }
-
-    .util-card {
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 7px;
-      padding: 8px;
-      font-size: 8.5px;
-      cursor: pointer;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .util-card:hover { border-color: #58a6ff; transform: translateY(-2px); }
-    .util-card .util-name { font-family: monospace; color: #79c0ff; font-weight: 700; margin-bottom: 3px; }
-    .util-card .util-desc { color: #6e7681; line-height: 1.5; }
-
-    /* ── TOOLTIP ── */
-    .tooltip {
-      position: absolute;
-      bottom: calc(100% + 10px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 9px;
-      color: #c9d1d9;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 100;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-    }
-    .node-card:hover .tooltip,
-    .stage-box:hover .tooltip,
-    .ec2-card:hover .tooltip,
-    .ecr-card:hover .tooltip { opacity: 1; }
-
-    /* ── STATUS BAR ── */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 8px;
-      padding: 10px 16px;
-      margin-top: 24px;
-      font-size: 10px;
-      color: #8b949e;
-      flex-wrap: wrap;
-    }
-    .status-item { display: flex; align-items: center; gap: 5px; }
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      animation: blink 1.5s ease-in-out infinite;
-    }
-
-    /* ── LEGEND ── */
-    .legend {
-      display: flex;
-      gap: 18px;
-      margin-top: 18px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 9.5px; color: #6e7681; }
-    .legend-line { width: 24px; height: 3px; border-radius: 2px; }
-
-    .footer {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 9px;
-      color: #484f58;
-    }
-
-    /* ── GRID LAYOUT ── */
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-
-    .middle-col { display: flex; flex-direction: column; gap: 0; }
-
-    .v-connector {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 4px 0;
-    }
-    .v-line {
-      width: 2px;
-      height: 20px;
-      border-right: 2px dashed #30363d;
-    }
-    .v-arrow-head { color: #30363d; font-size: 12px; }
   </style>
 </head>
 <body>
+<div class="page">
 
-<div class="header">
-  <h1>🚀 Python AWS Automation — CI/CD Pipeline Architecture</h1>
-  <p>Automated Docker Image Deployment to AWS EC2 via Jenkins &amp; Python · ca-central-1</p>
-</div>
+  <div class="page-title">Python AWS Automation — CI/CD Pipeline Architecture</div>
+  <div class="page-sub">Automated Docker Image Deployment to AWS EC2 via Jenkins &amp; Python &nbsp;|&nbsp; Region: ca-central-1 (Canada Central)</div>
 
-<div class="canvas">
+  <!-- SVG DIAGRAM -->
+  <svg viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+    <defs>
 
-  <!-- ── PIPELINE FLOW ── -->
-  <div class="pipeline-row">
+      <!-- Arrow heads -->
+      <marker id="a-blue"   markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#3b82f6"/></marker>
+      <marker id="a-orange" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#f59e0b"/></marker>
+      <marker id="a-red"    markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#ef4444"/></marker>
+      <marker id="a-green"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#22c55e"/></marker>
+      <marker id="a-purple" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#a855f7"/></marker>
+      <marker id="a-gray"   markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#9ca3af"/></marker>
+
+      <!-- Box shadow -->
+      <filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0000001a"/></filter>
+
+      <!-- Flow paths for animated packets -->
+      <path id="p1" d="M80,100 L138,100"/>
+      <path id="p2" d="M202,100 L228,100"/>
+      <path id="p3" d="M228,195 Q212,195 212,258 Q212,268 228,268"/>
+      <path id="p4" d="M488,105 Q530,105 530,175 Q530,225 560,225"/>
+      <path id="p5" d="M560,300 L848,300"/>
+      <path id="p6" d="M750,215 L718,215"/>
+      <path id="p7" d="M946,370 Q946,450 850,450 Q790,450 790,390 Q790,320 762,295"/>
+    </defs>
+
+
+    <!-- ═══════════════════════
+         AWS CLOUD OUTER BOX
+    ═══════════════════════ -->
+    <rect x="530" y="20" width="558" height="582" rx="14"
+          fill="#fafbff" stroke="#232f3e" stroke-width="2.2" filter="url(#sh)"/>
+    <!-- AWS logo/label -->
+    <rect x="530" y="20" width="200" height="22" rx="6" fill="#232f3e"/>
+    <text x="542" y="35" font-size="10.5" font-weight="700" fill="#fff">☁  AWS Cloud — ca-central-1</text>
+
+    <!-- VPC box -->
+    <rect x="542" y="50" width="534" height="544" rx="10"
+          fill="none" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="7,4"/>
+    <text x="556" y="68" font-size="9.5" font-weight="700" fill="#7c3aed">VPC — Default VPC</text>
+
+    <!-- Public Subnet -->
+    <rect x="554" y="76" width="510" height="510" rx="8"
+          fill="#f0fff4" stroke="#16a34a" stroke-width="1.4"/>
+    <text x="568" y="93" font-size="9" font-weight="700" fill="#166534">🟢  Public Subnet — ca-central-1a</text>
+
+    <!-- Security Group dashed box -->
+    <rect x="566" y="100" width="486" height="480" rx="7"
+          fill="none" stroke="#ef4444" stroke-width="1.3" stroke-dasharray="5,3"/>
+    <text x="580" y="116" font-size="8.5" font-weight="700" fill="#ef4444">🔒  Security Group — default</text>
+    <!-- SG rules -->
+    <rect x="580" y="120" width="90" height="14" rx="3" fill="#fef2f2"/>
+    <text x="586" y="130" font-size="7.5" fill="#dc2626" font-weight="600">SSH :22 → Jenkins</text>
+    <rect x="678" y="120" width="96" height="14" rx="3" fill="#fef2f2"/>
+    <text x="684" y="130" font-size="7.5" fill="#dc2626" font-weight="600">TCP :8080 → 0.0.0.0/0</text>
+
+
+    <!-- ═══════════════════════
+         EC2 INSTANCE
+    ═══════════════════════ -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="578" y="144" width="222" height="192" rx="10"
+            fill="#fff" stroke="#f59e0b" stroke-width="1.8"/>
+      <!-- header bar -->
+      <rect x="578" y="144" width="222" height="24" rx="10" fill="#fffbeb"/>
+      <rect x="578" y="154" width="222" height="14" fill="#fffbeb"/>
+      <text x="590" y="160" font-size="10" font-weight="700" fill="#b45309">🖥  EC2 Instance — my-server</text>
+
+      <text x="590" y="180" font-size="8.5" fill="#444">Type: &nbsp;<tspan font-weight="600">t2.small</tspan></text>
+      <text x="590" y="194" font-size="8.5" fill="#444">OS: &nbsp;<tspan font-weight="600">Amazon Linux 2023</tspan></text>
+      <text x="590" y="208" font-size="8.5" fill="#444">User: &nbsp;<tspan font-weight="600">ec2-user</tspan></text>
+      <text x="590" y="222" font-size="8.5" fill="#444">IP: &nbsp;<tspan font-weight="600">35.182.154.128</tspan></text>
+
+      <!-- Docker inner box -->
+      <rect x="590" y="232" width="198" height="92" rx="7" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.4"/>
+      <text x="688" y="250" font-size="9" font-weight="700" text-anchor="middle" fill="#1d4ed8">🐳  Docker Engine</text>
+      <!-- running container -->
+      <rect x="602" y="256" width="174" height="58" rx="5" fill="#fff" stroke="#93c5fd" stroke-width="1"/>
+      <!-- blinking green dot -->
+      <circle cx="616" cy="270" r="4" fill="#22c55e">
+        <animate attributeName="opacity" values="1;0.1;1" dur="1.3s" repeatCount="indefinite"/>
+      </circle>
+      <text x="626" y="273" font-size="8.5" fill="#15803d" font-weight="600">Running</text>
+      <text x="688" y="285" font-size="9" font-weight="700" text-anchor="middle" fill="#1e40af">java-app:1.0-17</text>
+      <text x="688" y="298" font-size="8" text-anchor="middle" fill="#6b7280">port: 8080</text>
+      <text x="688" y="308" font-size="7.5" text-anchor="middle" fill="#9ca3af">docker run -p 8080:8080 -d</text>
+    </g>
+
+    <!-- ═══════════════════════
+         INTERNET GATEWAY
+    ═══════════════════════ -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="578" y="350" width="222" height="54" rx="9"
+            fill="#fff" stroke="#7c3aed" stroke-width="1.5"/>
+      <text x="688" y="372" font-size="10" font-weight="700" text-anchor="middle" fill="#6d28d9">🌐  Internet Gateway</text>
+      <text x="688" y="388" font-size="8" text-anchor="middle" fill="#888">Routes public traffic → EC2</text>
+    </g>
+
+    <!-- Route Table -->
+    <g filter="url(#sh)">
+      <rect x="578" y="418" width="222" height="44" rx="8"
+            fill="#fff" stroke="#16a34a" stroke-width="1.3"/>
+      <text x="688" y="436" font-size="9.5" font-weight="700" text-anchor="middle" fill="#15803d">📋  Route Table</text>
+      <text x="688" y="450" font-size="8" text-anchor="middle" fill="#888">0.0.0.0/0 → IGW</text>
+    </g>
+
+    <!-- ═══════════════════════
+         AWS IAM
+    ═══════════════════════ -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="816" y="144" width="164" height="74" rx="9"
+            fill="#fff" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="898" y="172" font-size="24" text-anchor="middle">🔐</text>
+      <text x="898" y="192" font-size="9.5" font-weight="700" text-anchor="middle" fill="#15803d">AWS IAM</text>
+      <text x="898" y="206" font-size="8" text-anchor="middle" fill="#888">Credentials &amp; Access</text>
+    </g>
+
+    <!-- ═══════════════════════
+         AMAZON ECR
+    ═══════════════════════ -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="816" y="234" width="164" height="118" rx="9"
+            fill="#fff" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="898" y="254" font-size="9.5" font-weight="700" text-anchor="middle" fill="#7e22ce">📦  Amazon ECR</text>
+      <text x="898" y="268" font-size="8" text-anchor="middle" fill="#888">Private Registry — java-app</text>
+      <!-- image tags -->
+      <rect x="828" y="274" width="140" height="14" rx="4" fill="#f5f3ff"/>
+      <text x="830" y="284" font-size="8" fill="#7e22ce" font-family="Courier New">java-app:1.0-17  ← latest</text>
+      <rect x="828" y="292" width="140" height="14" rx="4" fill="#faf5ff"/>
+      <text x="830" y="302" font-size="8" fill="#7e22ce" font-family="Courier New">java-app:1.0-16</text>
+      <rect x="828" y="310" width="140" height="14" rx="4" fill="#faf5ff"/>
+      <text x="830" y="320" font-size="8" fill="#7e22ce" font-family="Courier New">java-app:1.0-15</text>
+      <text x="898" y="342" font-size="7.5" text-anchor="middle" fill="#bbb">sorted by push date ↓</text>
+    </g>
+
+    <!-- ═══════════════════════
+         USERS / INTERNET
+    ═══════════════════════ -->
+    <g>
+      <text x="946" y="415" font-size="30" text-anchor="middle">👤</text>
+      <!-- pulse -->
+      <circle cx="946" cy="405" r="0" fill="none" stroke="#3b82f6" stroke-width="1.3">
+        <animate attributeName="r" values="0;26" dur="2.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="2.2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="946" y="435" font-size="9" font-weight="700" text-anchor="middle" fill="#333">Users</text>
+      <text x="946" y="447" font-size="8" text-anchor="middle" fill="#888">Internet</text>
+    </g>
+    <!-- HTTP badge -->
+    <rect x="906" y="454" width="80" height="20" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5">
+      <animate attributeName="stroke-opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <text x="946" y="467" font-size="9" font-weight="700" text-anchor="middle" fill="#1d4ed8">HTTP :8080</text>
+
+
+    <!-- ═══════════════════════
+         LEFT NODES
+    ═══════════════════════ -->
 
     <!-- Developer -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128; border-color:#30363d;">
-        <div class="pulse-ring"></div>
-        👨‍💻
-      </div>
-      <div class="node-label">Developer</div>
-      <div class="node-sub">Commit changes</div>
-      <div class="tooltip">Writes code &amp; pushes to GitHub</div>
-    </div>
-
-    <!-- Arrow: git push -->
-    <div class="arrow-wrap">
-      <div class="arrow-track">
-        <div class="arrow-packet" style="background:linear-gradient(90deg,transparent,#58a6ff,transparent);"></div>
-      </div>
-      <div class="arrow-label">git push</div>
-    </div>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="18" y="68" width="72" height="72" rx="12" fill="#e0e7ff"/>
+      <text x="54" y="110" font-size="28" text-anchor="middle" dominant-baseline="middle">👨‍💻</text>
+      <circle cx="54" cy="104" r="0" fill="none" stroke="#6366f1" stroke-width="1.5">
+        <animate attributeName="r" values="0;30" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+        <animate attributeName="opacity" values="0.6;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+      </circle>
+    </g>
+    <text x="54" y="150" font-size="9.5" font-weight="700" text-anchor="middle" fill="#1e1b4b">Developer</text>
+    <text x="54" y="163" font-size="8" text-anchor="middle" fill="#888">Commit changes</text>
 
     <!-- Git -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128;">🔀</div>
-      <div class="node-label">Git</div>
-      <div class="node-sub">Version control</div>
-    </div>
-
-    <!-- Arrow -->
-    <div class="arrow-wrap">
-      <div class="arrow-track">
-        <div class="arrow-packet" style="background:linear-gradient(90deg,transparent,#58a6ff,transparent); animation-delay:0.3s;"></div>
-      </div>
-      <div class="arrow-label">push</div>
-    </div>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="140" y="68" width="72" height="72" rx="12" fill="#fff0e6"/>
+      <text x="176" y="110" font-size="28" text-anchor="middle" dominant-baseline="middle">🔀</text>
+    </g>
+    <text x="176" y="150" font-size="9.5" font-weight="700" text-anchor="middle" fill="#92400e">Git</text>
+    <text x="176" y="163" font-size="8" text-anchor="middle" fill="#888">Version control</text>
 
     <!-- GitHub -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128;">🐙</div>
-      <div class="node-label">GitHub</div>
-      <div class="node-sub">Source Code +<br/>Jenkinsfile</div>
-      <div class="tooltip">OkomaNdu/python-aws-automation</div>
-    </div>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="18" y="220" width="194" height="88" rx="12" fill="#f6f8fa" stroke="#e5e7eb" stroke-width="1.4"/>
+      <text x="115" y="253" font-size="26" text-anchor="middle">🐙</text>
+      <text x="115" y="275" font-size="10" font-weight="700" text-anchor="middle" fill="#1f2937">GitHub Repository</text>
+      <text x="115" y="290" font-size="8" text-anchor="middle" fill="#888">OkomaNdu/python-aws-automation</text>
+    </g>
 
-    <!-- Arrow: trigger -->
-    <div class="arrow-wrap">
-      <div class="arrow-track">
-        <div class="arrow-packet" style="background:linear-gradient(90deg,transparent,#e3b341,transparent); animation-delay:0.6s;"></div>
-      </div>
-      <div class="arrow-label" style="color:#e3b341;">trigger</div>
-    </div>
+    <!-- ═══════════════════════
+         JENKINS BOX
+    ═══════════════════════ -->
+    <rect x="228" y="20" width="288" height="292" rx="12"
+          fill="#fffdf0" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="6,3" filter="url(#sh)"/>
+    <text x="248" y="40" font-size="10.5" font-weight="700" fill="#b45309">🤖  Jenkins Server (Docker Container)</text>
 
-    <!-- Jenkins -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128; border-color:#e3b341;">
-        <div class="pulse-ring" style="animation-delay:0.8s; border-color:#e3b341;"></div>
-        🤖
-      </div>
-      <div class="node-label">Jenkins</div>
-      <div class="node-sub">CI/CD Server<br/>(Docker container)</div>
-      <div class="tooltip">Runs pipeline stages via Python scripts</div>
-    </div>
+    <!-- Stage boxes -->
+    <!-- Stage 1 -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="240" y="50" width="80" height="80" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="280" y="72" font-size="8.5" font-weight="700" text-anchor="middle" fill="#92400e">1. Select</text>
+      <text x="280" y="86" font-size="8.5" text-anchor="middle" fill="#92400e">Image</text>
+      <text x="280" y="100" font-size="8.5" text-anchor="middle" fill="#92400e">Version</text>
+      <!-- shimmer sweep -->
+      <rect x="240" y="50" width="20" height="80" rx="9" fill="white" opacity="0.35">
+        <animateTransform attributeName="transform" type="translate"
+          values="-20,0;80,0;-20,0" dur="2.8s" repeatCount="indefinite"/>
+      </rect>
+    </g>
 
-    <!-- Arrow: SSH deploy -->
-    <div class="arrow-wrap">
-      <div class="arrow-track">
-        <div class="arrow-packet" style="background:linear-gradient(90deg,transparent,#f78166,transparent); animation-delay:0.9s;"></div>
-      </div>
-      <div class="arrow-label" style="color:#f78166;">SSH / boto3</div>
-    </div>
+    <!-- Stage 2 -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="334" y="50" width="80" height="80" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="374" y="72" font-size="8.5" font-weight="700" text-anchor="middle" fill="#92400e">2. Deploy</text>
+      <text x="374" y="86" font-size="8.5" text-anchor="middle" fill="#92400e">Docker</text>
+      <text x="374" y="100" font-size="8.5" text-anchor="middle" fill="#92400e">Image</text>
+      <rect x="334" y="50" width="20" height="80" rx="9" fill="white" opacity="0.35">
+        <animateTransform attributeName="transform" type="translate"
+          values="-20,0;80,0;-20,0" dur="2.8s" begin="0.4s" repeatCount="indefinite"/>
+      </rect>
+    </g>
 
-    <!-- AWS EC2 -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128; border-color:#e3b341;">
-        <div class="pulse-ring" style="border-color:#e3b341; animation-delay:1.2s;"></div>
-        🖥️
-      </div>
-      <div class="node-label">EC2 Instance</div>
-      <div class="node-sub">my-server<br/>t2.small · AL2023</div>
-      <div class="tooltip">Hosts the Dockerized Java application</div>
-    </div>
+    <!-- Stage 3 -->
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="428" y="50" width="80" height="80" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="468" y="72" font-size="8.5" font-weight="700" text-anchor="middle" fill="#92400e">3. Validate</text>
+      <text x="468" y="86" font-size="8.5" text-anchor="middle" fill="#92400e">Deploy-</text>
+      <text x="468" y="100" font-size="8.5" text-anchor="middle" fill="#92400e">ment</text>
+      <rect x="428" y="50" width="20" height="80" rx="9" fill="white" opacity="0.35">
+        <animateTransform attributeName="transform" type="translate"
+          values="-20,0;80,0;-20,0" dur="2.8s" begin="0.8s" repeatCount="indefinite"/>
+      </rect>
+    </g>
 
-    <!-- Arrow: HTTP -->
-    <div class="arrow-wrap">
-      <div class="arrow-track">
-        <div class="arrow-packet" style="background:linear-gradient(90deg,transparent,#3fb950,transparent); animation-delay:1.2s;"></div>
-      </div>
-      <div class="arrow-label" style="color:#3fb950;">HTTP :8080</div>
-    </div>
+    <!-- stage arrows -->
+    <line x1="320" y1="90" x2="334" y2="90" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#a-orange)"/>
+    <line x1="414" y1="90" x2="428" y2="90" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#a-orange)"/>
 
-    <!-- Users -->
-    <div class="node-card">
-      <div class="node-icon" style="background:#1c2128;">🌐</div>
-      <div class="node-label">Users</div>
-      <div class="node-sub">Internet<br/>port 8080</div>
-    </div>
+    <!-- Script tags -->
+    <rect x="240" y="140" width="80" height="16" rx="4" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="280" y="151" font-size="7.5" text-anchor="middle" fill="#555" font-family="Courier New">get-images.py</text>
+    <rect x="334" y="140" width="80" height="16" rx="4" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="374" y="151" font-size="7.5" text-anchor="middle" fill="#555" font-family="Courier New">deploy.py</text>
+    <rect x="428" y="140" width="80" height="16" rx="4" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="468" y="151" font-size="7.5" text-anchor="middle" fill="#555" font-family="Courier New">validate.py</text>
 
-  </div><!-- end pipeline-row -->
+    <!-- Credentials bar -->
+    <rect x="240" y="166" width="268" height="16" rx="4" fill="#fffbeb" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="248" y="177" font-size="7.5" fill="#92400e" font-weight="700">🔑</text>
+    <rect x="262" y="168" width="56" height="12" rx="3" fill="#fef3c7"/>
+    <text x="265" y="177" font-size="7" fill="#92400e">AWS Access Key</text>
+    <rect x="322" y="168" width="54" height="12" rx="3" fill="#fef3c7"/>
+    <text x="325" y="177" font-size="7" fill="#92400e">AWS Secret Key</text>
+    <rect x="380" y="168" width="52" height="12" rx="3" fill="#fef3c7"/>
+    <text x="383" y="177" font-size="7" fill="#92400e">ECR Password</text>
+    <rect x="436" y="168" width="56" height="12" rx="3" fill="#fef3c7"/>
+    <text x="439" y="177" font-size="7" fill="#92400e">SSH Key Pair</text>
 
-  <!-- ── MAIN GRID ── -->
-  <div class="main-grid" style="margin-top:24px;">
+    <!-- ECR (as "Private Registry" like Docker Hub in template) -->
+    <g filter="url(#sh)">
+      <rect x="240" y="192" width="130" height="60" rx="9" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="305" y="215" font-size="18" text-anchor="middle">📦</text>
+      <text x="305" y="232" font-size="9" font-weight="700" text-anchor="middle" fill="#7e22ce">Private Registry</text>
+      <text x="305" y="244" font-size="7.5" text-anchor="middle" fill="#888">Amazon ECR</text>
+    </g>
 
-    <!-- LEFT: Utility Scripts -->
-    <div class="section-box utility-section">
-      <div class="section-title">🛠 Utility Scripts <span style="font-size:9px;color:#6e7681;font-weight:400;">(run locally via boto3)</span></div>
-      <div class="util-grid">
-        <div class="util-card">
-          <div class="util-name">ec2-nginx.py</div>
-          <div class="util-desc">Provision EC2, install Docker, run nginx &amp; monitor health</div>
-        </div>
-        <div class="util-card">
-          <div class="util-name">ecr.py</div>
-          <div class="util-desc">List ECR repos &amp; images sorted by push date</div>
-        </div>
-        <div class="util-card">
-          <div class="util-name">iam.py</div>
-          <div class="util-desc">Audit IAM users, find most recently active</div>
-        </div>
-        <div class="util-card">
-          <div class="util-name">subnets.py</div>
-          <div class="util-desc">Discover default subnets per AZ</div>
-        </div>
-      </div>
-      <div style="margin-top:10px; font-size:8.5px; color:#484f58; text-align:center;">
-        boto3 · paramiko · requests · schedule
-      </div>
-    </div>
+    <!-- SSH Key Pair (like template) -->
+    <g filter="url(#sh)">
+      <rect x="380" y="192" width="128" height="60" rx="9" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+      <text x="444" y="215" font-size="18" text-anchor="middle">🔑</text>
+      <text x="444" y="232" font-size="9" font-weight="700" text-anchor="middle" fill="#c2410c">SSH Key Pair</text>
+      <text x="444" y="244" font-size="7.5" text-anchor="middle" fill="#888">boto3-server-key.pem</text>
+    </g>
 
-    <!-- MIDDLE: Jenkins Pipeline Stages -->
-    <div class="section-box jenkins-section">
-      <div class="section-title">🤖 Jenkins Pipeline — Declarative</div>
+    <!-- boto3 / Python functions (like Groovy functions in template) -->
+    <g filter="url(#sh)">
+      <rect x="240" y="264" width="268" height="40" rx="9" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.3" stroke-dasharray="4,2"/>
+      <text x="374" y="280" font-size="8.5" font-weight="700" text-anchor="middle" fill="#15803d">Python Functions (boto3 · paramiko · requests)</text>
+      <text x="374" y="294" font-size="7.5" text-anchor="middle" fill="#888">AWS API calls: EC2 · ECR · IAM · VPC</text>
+    </g>
 
-      <div class="stages-row">
-        <div class="stage-box" style="flex:1;">
-          <div class="stage-num">Stage 1</div>
-          Select Image<br/>Version
-          <div class="tooltip">User selects Docker tag from ECR dropdown</div>
-        </div>
-        <div class="stage-arrow">→</div>
-        <div class="stage-box" style="flex:1;">
-          <div class="stage-num">Stage 2</div>
-          Deploy<br/>Image
-          <div class="tooltip">SSH into EC2, docker login ECR, docker run</div>
-        </div>
-        <div class="stage-arrow">→</div>
-        <div class="stage-box" style="flex:1;">
-          <div class="stage-num">Stage 3</div>
-          Validate<br/>Deployment
-          <div class="tooltip">HTTP GET :8080 — confirm 200 OK</div>
-        </div>
-      </div>
 
-      <div class="scripts-row">
-        <span class="script-tag">get-images.py</span>
-        <span class="script-tag">deploy.py</span>
-        <span class="script-tag">validate.py</span>
-      </div>
+    <!-- ═══════════════════════
+         UTILITY SCRIPTS SECTION
+         (Like Shared Library in template)
+    ═══════════════════════ -->
+    <rect x="228" y="328" width="288" height="220" rx="10"
+          fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" filter="url(#sh)"/>
+    <text x="248" y="348" font-size="10" font-weight="700" fill="#1d4ed8">🛠  Python Utility Scripts (run locally)</text>
 
-      <div class="creds-row">
-        <span style="font-size:8.5px;color:#6e7681;">🔑 Credentials:</span>
-        <span class="cred-badge">AWS Access Key</span>
-        <span class="cred-badge">AWS Secret Key</span>
-        <span class="cred-badge">ECR Password</span>
-        <span class="cred-badge">SSH Key Pair</span>
-      </div>
-    </div>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="240" y="358" width="126" height="52" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.2"/>
+      <text x="303" y="376" font-size="18" text-anchor="middle">🖥️</text>
+      <text x="303" y="393" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1d4ed8" font-family="Courier New">ec2-nginx.py</text>
+      <text x="303" y="404" font-size="7.5" text-anchor="middle" fill="#888">Provision EC2 + monitor</text>
+    </g>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="378" y="358" width="126" height="52" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.2"/>
+      <text x="441" y="376" font-size="18" text-anchor="middle">📦</text>
+      <text x="441" y="393" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1d4ed8" font-family="Courier New">ecr.py</text>
+      <text x="441" y="404" font-size="7.5" text-anchor="middle" fill="#888">List repos &amp; images</text>
+    </g>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="240" y="420" width="126" height="52" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.2"/>
+      <text x="303" y="438" font-size="18" text-anchor="middle">🔐</text>
+      <text x="303" y="455" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1d4ed8" font-family="Courier New">iam.py</text>
+      <text x="303" y="466" font-size="7.5" text-anchor="middle" fill="#888">Audit IAM users</text>
+    </g>
+    <g filter="url(#sh)" cursor="pointer">
+      <rect x="378" y="420" width="126" height="52" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.2"/>
+      <text x="441" y="438" font-size="18" text-anchor="middle">🌐</text>
+      <text x="441" y="455" font-size="8.5" font-weight="700" text-anchor="middle" fill="#1d4ed8" font-family="Courier New">subnets.py</text>
+      <text x="441" y="466" font-size="7.5" text-anchor="middle" fill="#888">List default subnets</text>
+    </g>
+    <text x="374" y="506" font-size="8" text-anchor="middle" fill="#93c5fd">boto3 SDK · paramiko · schedule</text>
+    <text x="374" y="520" font-size="8" text-anchor="middle" fill="#93c5fd">AWS_ACCESS_KEY_ID · AWS_SECRET_ACCESS_KEY</text>
 
-    <!-- RIGHT: AWS Services -->
-    <div class="section-box aws-section">
-      <div class="section-title">☁️ AWS Services</div>
 
-      <!-- ECR -->
-      <div class="ecr-card">
-        <div class="ecr-title">📦 Amazon ECR</div>
-        <div style="font-size:8.5px;color:#6e7681;margin-bottom:4px;">java-app repository</div>
-        <span class="ecr-tag">java-app:1.0-17</span>
-        <span class="ecr-tag">java-app:1.0-16</span>
-        <span class="ecr-tag">java-app:1.0-15</span>
-        <div style="font-size:8px;color:#484f58;margin-top:4px;">sorted by push date</div>
-        <div class="tooltip">Private Docker image registry</div>
-      </div>
+    <!-- ═══════════════════════
+         CONNECTING ARROWS
+    ═══════════════════════ -->
 
-      <!-- IAM -->
-      <div class="iam-card" style="margin-top:8px;">
-        <div class="iam-title">🔐 AWS IAM</div>
-        <div style="font-size:8.5px;color:#6e7681;margin-top:3px;">Credentials &amp; Access Control</div>
-      </div>
+    <!-- Dev → Git (horizontal) -->
+    <line x1="90" y1="104" x2="138" y2="104" stroke="#3b82f6" stroke-width="1.8" marker-end="url(#a-blue)"/>
+    <text x="114" y="97" font-size="8" text-anchor="middle" fill="#3b82f6" font-weight="600">Commit</text>
+    <circle r="5" fill="#3b82f6">
+      <animateMotion dur="1.1s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.1s" repeatCount="indefinite"/>
+    </circle>
 
-      <!-- Internet Gateway -->
-      <div class="igw-card" style="margin-top:8px;">
-        <div class="igw-title">🌐 Internet Gateway</div>
-        <div style="font-size:8.5px;color:#6e7681;margin-top:2px;">Public traffic → EC2 :8080</div>
-      </div>
+    <!-- Git → GitHub top (vertical) -->
+    <line x1="176" y1="140" x2="176" y2="205" stroke="#3b82f6" stroke-width="1.8" marker-end="url(#a-blue)"/>
+    <circle r="5" fill="#3b82f6">
+      <animateMotion dur="1.1s" repeatCount="indefinite" begin="0.3s">
+        <mpath href="#p3"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.1s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <text x="190" y="175" font-size="8" fill="#3b82f6" font-weight="600">push</text>
 
-    </div>
+    <!-- GitHub → Jenkins (curve) -->
+    <path d="M212,264 Q226,264 228,180 Q228,120 240,90"
+          fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="5,3"
+          marker-end="url(#a-orange)"/>
+    <text x="210" y="215" font-size="8" fill="#f59e0b" font-weight="600" text-anchor="middle">trigger</text>
+    <circle r="4" fill="#f59e0b">
+      <animateMotion dur="1.8s" repeatCount="indefinite" begin="0.6s">
+        <mpath href="#p2"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+    <path id="p2" d="M212,264 Q226,264 228,180 Q228,120 240,90" fill="none"/>
 
-  </div><!-- end main-grid -->
+    <!-- Jenkins Stage 2 → EC2 (SSH deploy) -->
+    <path d="M508,90 Q530,90 530,200 Q530,225 560,225"
+          fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#a-red)"/>
+    <text x="533" y="148" font-size="8.5" fill="#ef4444" font-weight="600">SSH Deploy</text>
+    <text x="533" y="160" font-size="8" fill="#ef4444">(paramiko)</text>
+    <circle r="5" fill="#ef4444">
+      <animateMotion dur="2s" repeatCount="indefinite" begin="0.9s">
+        <mpath href="#p4"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+    <path id="p4" d="M508,90 Q530,90 530,200 Q530,225 560,225" fill="none"/>
 
-  <!-- ── AWS VPC / EC2 SECTION ── -->
-  <div class="section-box" style="border:1.5px solid #f78166; background:#161b22; margin-top:16px;">
-    <div class="section-title" style="color:#f78166;">☁️ AWS Cloud — ca-central-1 (Canada Central)</div>
+    <!-- ECR → EC2 (docker pull) -->
+    <line x1="816" y1="296" x2="800" y2="296" stroke="#a855f7" stroke-width="1.8" marker-end="url(#a-purple)"/>
+    <text x="808" y="310" font-size="7.5" fill="#a855f7" text-anchor="middle" font-weight="600">docker pull</text>
+    <circle r="4" fill="#a855f7">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.5s">
+        <mpath href="#p6"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <path id="p6" d="M816,296 L800,296" fill="none"/>
 
-    <div class="vpc-box">
-      <div class="vpc-title">🔷 VPC — Default VPC</div>
+    <!-- EC2 → Internet GW -->
+    <line x1="688" y1="336" x2="688" y2="350" stroke="#22c55e" stroke-width="1.8" marker-end="url(#a-green)"/>
 
-      <div class="subnet-box">
-        <div class="subnet-title">🟢 Public Subnet — ca-central-1a</div>
+    <!-- IGW → Route Table -->
+    <line x1="688" y1="404" x2="688" y2="418" stroke="#22c55e" stroke-width="1.8" marker-end="url(#a-green)"/>
 
-        <div class="aws-inner">
-          <!-- EC2 -->
-          <div style="flex:1;">
-            <div class="ec2-card">
-              <div class="ec2-title">🖥️ EC2 Instance — my-server</div>
-              <div class="ec2-detail">
-                Instance Type: &nbsp;<strong style="color:#c9d1d9;">t2.small</strong><br/>
-                OS: &nbsp;<strong style="color:#c9d1d9;">Amazon Linux 2023</strong><br/>
-                SSH User: &nbsp;<strong style="color:#c9d1d9;">ec2-user</strong><br/>
-                Public IP: &nbsp;<strong style="color:#c9d1d9;">35.182.154.128</strong>
-              </div>
-              <div class="docker-box">
-                <span class="running-dot"></span>
-                Docker Engine &nbsp;|&nbsp; <strong>java-app:1.0-17</strong> &nbsp;→ :8080
-              </div>
-              <div class="tooltip">Deployed and validated by Jenkins pipeline</div>
-            </div>
+    <!-- Validate arrow (Jenkins Stage 3 → EC2 HTTP check) -->
+    <path d="M508,115 Q520,115 525,255 Q528,278 560,278"
+          fill="none" stroke="#22c55e" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#a-green)"/>
+    <text x="520" y="200" font-size="7.5" fill="#22c55e" text-anchor="middle">HTTP check</text>
+    <text x="520" y="210" font-size="7.5" fill="#22c55e" text-anchor="middle">:8080</text>
 
-            <div class="sg-box">
-              <div class="sg-title">🔒 Security Group — default</div>
-              <div class="sg-rules">
-                <div class="sg-rule">SSH :22 → Jenkins IP</div>
-                <div class="sg-rule">TCP :8080 → 0.0.0.0/0</div>
-              </div>
-            </div>
-          </div>
+    <!-- Users → EC2 (HTTP traffic) -->
+    <path d="M946,470 Q946,530 840,530 Q800,530 800,490 Q800,460 800,395 Q800,360 800,340"
+          fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a-blue)"/>
+    <circle r="4" fill="#3b82f6">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="1.2s">
+        <mpath href="#p7"/>
+      </animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <path id="p7" d="M946,470 Q946,530 840,530 Q800,530 800,490 Q800,360 800,320 Q800,295 800,290" fill="none"/>
 
-          <!-- Right mini column -->
-          <div style="display:flex;flex-direction:column;gap:8px;min-width:130px;">
-            <div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:8px;font-size:8.5px;color:#8b949e;text-align:center;">
-              <div style="color:#e3b341;font-weight:700;margin-bottom:4px;">📥 docker pull</div>
-              Pulls image from ECR<br/>on each deployment
-            </div>
-            <div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:8px;font-size:8.5px;color:#8b949e;text-align:center;">
-              <div style="color:#3fb950;font-weight:700;margin-bottom:4px;">✅ Validated</div>
-              HTTP 200 OK<br/>confirmed by Jenkins
-            </div>
-            <div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:8px;font-size:8.5px;color:#8b949e;text-align:center;">
-              <div style="color:#58a6ff;font-weight:700;margin-bottom:4px;">🔁 Self-Healing</div>
-              ec2-nginx.py<br/>monitors &amp; restarts
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- fetch image tags (Jenkins → ECR top) -->
+    <path d="M508,70 Q560,50 816,240"
+          fill="none" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#a-gray)"/>
+    <text x="645" y="102" font-size="7.5" fill="#9ca3af" text-anchor="middle">fetch image tags</text>
 
-  <!-- ── STATUS BAR ── -->
-  <div class="status-bar">
-    <div class="status-item">
-      <div class="status-dot" style="background:#3fb950;"></div>
-      EC2 Instance: Running
-    </div>
-    <div class="status-item">
-      <div class="status-dot" style="background:#3fb950; animation-delay:0.4s;"></div>
-      Docker Engine: Active
-    </div>
-    <div class="status-item">
-      <div class="status-dot" style="background:#3fb950; animation-delay:0.8s;"></div>
-      Jenkins Pipeline: Operational
-    </div>
-    <div class="status-item">
-      <div class="status-dot" style="background:#58a6ff; animation-delay:1.2s;"></div>
-      ECR Registry: Connected
-    </div>
-    <div class="status-item">
-      <div class="status-dot" style="background:#e3b341; animation-delay:1.6s;"></div>
-      Region: ca-central-1
-    </div>
-    <div style="margin-left:auto; font-size:9px; color:#484f58;">Last deployment: java-app:1.0-17</div>
-  </div>
 
-  <!-- ── LEGEND ── -->
+    <!-- ═══════════════════════
+         STATUS BAR
+    ═══════════════════════ -->
+    <rect x="18" y="586" width="1064" height="24" rx="7" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <circle cx="34" cy="598" r="4" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.15;1" dur="1.4s" repeatCount="indefinite"/>
+    </circle>
+    <text x="44" y="602" font-size="8.5" fill="#374151" font-weight="600">EC2: Running</text>
+    <circle cx="140" cy="598" r="4" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.15;1" dur="1.4s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <text x="150" y="602" font-size="8.5" fill="#374151" font-weight="600">Docker: Active</text>
+    <circle cx="252" cy="598" r="4" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.15;1" dur="1.4s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="262" y="602" font-size="8.5" fill="#374151" font-weight="600">Jenkins: Operational</text>
+    <circle cx="376" cy="598" r="4" fill="#3b82f6">
+      <animate attributeName="opacity" values="1;0.15;1" dur="1.4s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+    <text x="386" y="602" font-size="8.5" fill="#374151" font-weight="600">ECR: Connected</text>
+    <circle cx="480" cy="598" r="4" fill="#f59e0b">
+      <animate attributeName="opacity" values="1;0.15;1" dur="1.4s" begin="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="490" y="602" font-size="8.5" fill="#374151" font-weight="600">Region: ca-central-1</text>
+
+    <text x="1074" y="602" font-size="8" fill="#d1d5db" text-anchor="end">
+      Built with Jenkins · Python · Docker · AWS &nbsp;|&nbsp; Instance: t2.small
+    </text>
+
+  </svg>
+
+  <!-- LEGEND -->
   <div class="legend">
-    <div class="legend-item"><div class="legend-line" style="background:#58a6ff;"></div> Git / SCM flow</div>
-    <div class="legend-item"><div class="legend-line" style="background:#e3b341;"></div> Jenkins trigger</div>
-    <div class="legend-item"><div class="legend-line" style="background:#f78166;"></div> SSH / Deploy</div>
-    <div class="legend-item"><div class="legend-line" style="background:#8957e5;"></div> Docker pull (ECR)</div>
-    <div class="legend-item"><div class="legend-line" style="background:#3fb950;"></div> HTTP traffic</div>
-    <div class="legend-item"><div class="legend-line" style="background:#1f6feb;"></div> boto3 API calls</div>
+    <div class="li"><div class="ll" style="background:#3b82f6;"></div> Git / SCM flow</div>
+    <div class="li"><div class="ld" style="border-color:#f59e0b;"></div> Jenkins trigger</div>
+    <div class="li"><div class="ll" style="background:#ef4444;"></div> SSH Deploy (paramiko)</div>
+    <div class="li"><div class="ll" style="background:#a855f7;"></div> Docker pull (ECR)</div>
+    <div class="li"><div class="ll" style="background:#22c55e;"></div> App traffic / health check</div>
+    <div class="li"><div class="ld" style="border-color:#3b82f6;"></div> User HTTP traffic</div>
+    <div class="li"><div class="ld" style="border-color:#9ca3af;"></div> boto3 API calls</div>
   </div>
 
-  <div class="footer" style="margin-top:16px;">
-    Built with Jenkins · Python (boto3, paramiko, requests) · Docker · AWS &nbsp;|&nbsp;
-    Region: ca-central-1 · Instance: t2.small · Amazon Linux 2023
+  <div class="footer-note">
+    Region: ca-central-1 &nbsp;·&nbsp; VPC: Default &nbsp;·&nbsp; Instance: t2.small &nbsp;·&nbsp; Amazon Linux 2023
   </div>
 
-</div><!-- end canvas -->
+</div>
 </body>
 </html>
