@@ -4,7 +4,7 @@ pipeline {
     agent any
     environment {
         ECR_REPO_NAME = 'java-app'
-        EC2_SERVER = '35.182.154.128'
+        EC2_SERVER = 'EC2_SERVER'
         EC2_USER = 'ec2-user'
 
         // will be set to the location of the SSH key file that is temporarily created
